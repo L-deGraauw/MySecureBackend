@@ -6,6 +6,7 @@ using MySecureBackend.WebApi.Services;
 
 namespace MySecureBackend.WebApi.Controllers;
 //This is a change to test a Git Commit
+// another test commit
 //[Authorize] // TODO: Uncomment when authentication is enabled
 [ApiController]
 [Route("[controller]")]
