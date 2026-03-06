@@ -41,6 +41,18 @@ public class Environment2DController : ControllerBase
         return Ok(result);
     }
 
+    [HttpGet("my", Name = "GetUserEnvironments")]
+    public async Task<ActionResult> GetUserEnvironmentsAsync()
+    {
+        var userId = GetUserId();
+
+        if (string.IsNullOrEmpty(userId))
+            return Unauthorized(new ProblemDetails { Detail = "User identification is required. Provide an X-User-Id header or authenticate." });
+
+        var environments = await _environment2DRepository.SelectByOwnerAsync(userId);
+        return Ok(environments);
+    }
+
     [HttpGet("{id}", Name = "GetEnvironmentById")]
     public async Task<ActionResult<Environment2D>> GetByIdAsync(Guid EnvironmentId)
     {

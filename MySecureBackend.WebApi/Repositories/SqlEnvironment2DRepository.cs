@@ -37,6 +37,14 @@ namespace MySecureBackend.WebApi.Repositories
             }
         }
 
+        public async Task<IEnumerable<Environment2D>> SelectByOwnerAsync(string ownerUserId)
+        {
+            using (var sqlConnection = new SqlConnection(sqlConnectionString))
+            {
+                return await sqlConnection.QueryAsync<Environment2D>("SELECT * FROM [Environment2D] WHERE OwnerUserId = @ownerUserId", new { ownerUserId });
+            }
+        }
+
         public async Task UpdateAsync(Environment2D environment)
         {
             using (var sqlConnection = new SqlConnection(sqlConnectionString))
