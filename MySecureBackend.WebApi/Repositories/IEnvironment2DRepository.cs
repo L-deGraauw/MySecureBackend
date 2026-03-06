@@ -4,7 +4,7 @@ namespace MySecureBackend.WebApi.Repositories
 {
     public interface IEnvironment2DRepository
     {
-        Task InsertAsync(Environment2D environment);
+        Task<Guid> InsertAsync(Environment2D environment);
         Task DeleteAsync(Guid id);
         Task<IEnumerable<Environment2D>> SelectAsync();
         Task<IEnumerable<Environment2D>> SelectByOwnerAsync(string ownerUserId);

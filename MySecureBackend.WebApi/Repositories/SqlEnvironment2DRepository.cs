@@ -13,11 +13,11 @@ namespace MySecureBackend.WebApi.Repositories
             this.sqlConnectionString = sqlConnectionString;
         }
 
-        public async Task InsertAsync(Environment2D environment)
+        public async Task<Guid> InsertAsync(Environment2D environment)
         {
             using (var sqlConnection = new SqlConnection(sqlConnectionString))
             {
-                await sqlConnection.ExecuteAsync("INSERT INTO [Environment2D] (Name, OwnerUserId, MaxLength, MaxHeight) VALUES (@Name, @OwnerUserId, @MaxLength, @MaxHeight)", environment);
+                return await sqlConnection.QuerySingleAsync<Guid>("INSERT INTO [Environment2D] (Name, OwnerUserId, MaxLength, MaxHeight) OUTPUT INSERTED.Id VALUES (@Name, @OwnerUserId, @MaxLength, @MaxHeight)", environment);
             }
         }
 
@@ -25,7 +25,7 @@ namespace MySecureBackend.WebApi.Repositories
         {
             using (var sqlConnection = new SqlConnection(sqlConnectionString))
             {
-                return await sqlConnection.QuerySingleOrDefaultAsync<Environment2D>("SELECT * FROM [Environment2D] WHERE Id = @Id", new { id });
+                return await sqlConnection.QuerySingleOrDefaultAsync<Environment2D>("SELECT Id AS EnvironmentId, Name, OwnerUserId, MaxLength, MaxHeight FROM [Environment2D] WHERE Id = @id", new { id });
             }
         }
 
@@ -33,7 +33,7 @@ namespace MySecureBackend.WebApi.Repositories
         {
             using (var sqlConnection = new SqlConnection(sqlConnectionString))
             {
-                return await sqlConnection.QueryAsync<Environment2D>("SELECT * FROM [Environment2D]");
+                return await sqlConnection.QueryAsync<Environment2D>("SELECT Id AS EnvironmentId, Name, OwnerUserId, MaxLength, MaxHeight FROM [Environment2D]");
             }
         }
 
@@ -41,7 +41,7 @@ namespace MySecureBackend.WebApi.Repositories
         {
             using (var sqlConnection = new SqlConnection(sqlConnectionString))
             {
-                return await sqlConnection.QueryAsync<Environment2D>("SELECT * FROM [Environment2D] WHERE OwnerUserId = @ownerUserId", new { ownerUserId });
+                return await sqlConnection.QueryAsync<Environment2D>("SELECT Id AS EnvironmentId, Name, OwnerUserId, MaxLength, MaxHeight FROM [Environment2D] WHERE OwnerUserId = @ownerUserId", new { ownerUserId });
             }
         }
 
@@ -54,7 +54,7 @@ namespace MySecureBackend.WebApi.Repositories
                                                  "OwnerUserId = @OwnerUserId, " +
                                                  "MaxLength = @MaxLength, " +
                                                  "MaxHeight = @MaxHeight " +
-                                                 "WHERE Id = @Id", environment);
+                                                 "WHERE Id = @EnvironmentId", environment);
             }
         }
 

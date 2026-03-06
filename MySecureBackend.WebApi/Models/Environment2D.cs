@@ -5,7 +5,7 @@ namespace MySecureBackend.WebApi.Models
     public class Environment2D
     {
         [Required]
-        public Guid EnvironmentId { get; set; }
+        public Guid Id { get; set; }
         [Required]
         public string Name { get; set; }
         [Required]

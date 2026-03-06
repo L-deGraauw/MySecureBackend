@@ -37,7 +37,7 @@ public class Environment2DController : ControllerBase
     public async Task<ActionResult> GetAsync()
     {
         var environments = await _environment2DRepository.SelectAsync();
-        var result = environments.Select(e => new { e.EnvironmentId, e.Name, e.OwnerUserId });
+        var result = environments.Select(e => new { e.Id, e.Name, e.OwnerUserId });
         return Ok(result);
     }
 
@@ -54,12 +54,12 @@ public class Environment2DController : ControllerBase
     }
 
     [HttpGet("{id}", Name = "GetEnvironmentById")]
-    public async Task<ActionResult<Environment2D>> GetByIdAsync(Guid EnvironmentId)
+    public async Task<ActionResult<Environment2D>> GetByIdAsync(Guid id)
     {
-        var environment = await _environment2DRepository.SelectAsync(EnvironmentId);
+        var environment = await _environment2DRepository.SelectAsync(id);
 
         if (environment == null)
-            return NotFound(new ProblemDetails { Detail = $"Environment {EnvironmentId} not found" });
+            return NotFound(new ProblemDetails { Detail = $"Environment {id} not found" });
 
         return Ok(environment);
     }
@@ -80,28 +80,27 @@ public class Environment2DController : ControllerBase
         if (nameExists)
             return Conflict(new ProblemDetails { Detail = $"You already have an environment named '{environment.Name}'" });
 
-        environment.EnvironmentId = Guid.NewGuid();
         environment.OwnerUserId = userId;
 
-        await _environment2DRepository.InsertAsync(environment);
+        environment.Id = await _environment2DRepository.InsertAsync(environment);
 
-        return CreatedAtRoute("GetEnvironmentById", new { id = environment.EnvironmentId }, environment);
+        return CreatedAtRoute("GetEnvironmentById", new { id = environment.Id }, environment);
     }
 
     [HttpDelete("{id}", Name = "DeleteEnvironment")]
-    public async Task<ActionResult> DeleteAsync(Guid EnvironmentId)
+    public async Task<ActionResult> DeleteAsync(Guid id)
     {
         var userId = GetUserId();
 
         if (string.IsNullOrEmpty(userId))
             return Unauthorized(new ProblemDetails { Detail = "User identification is required. Provide an X-User-Id header or authenticate." });
 
-        var environment = await _environment2DRepository.SelectAsync(EnvironmentId);
+        var environment = await _environment2DRepository.SelectAsync(id);
 
         if (environment == null || environment.OwnerUserId != userId)
-            return NotFound(new ProblemDetails { Detail = $"Environment {EnvironmentId} not found" });
+            return NotFound(new ProblemDetails { Detail = $"Environment {id} not found" });
 
-        await _environment2DRepository.DeleteAsync(EnvironmentId);
+        await _environment2DRepository.DeleteAsync(id);
 
         return Ok();
     }
@@ -114,7 +113,7 @@ public class Environment2DController : ControllerBase
         if (existingEnvironment == null)
             return NotFound(new ProblemDetails { Detail = $"Environment {id} not found" });
 
-        if (environment.EnvironmentId != id)
+        if (environment.Id != id)
             return Conflict(new ProblemDetails { Detail = "The id of the Environment in the route does not match the id of the Environment in the body" });
 
         await _environment2DRepository.UpdateAsync(environment);

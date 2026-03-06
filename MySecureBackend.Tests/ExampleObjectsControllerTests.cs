@@ -61,7 +61,7 @@ namespace MySecureBackend.Tests
 
                 envRepo.Setup(r => r.InsertAsync(It.IsAny<Environment2D>()))
                        .Callback<Environment2D>(e => store.Add(e))
-                       .Returns(Task.CompletedTask);
+                       .ReturnsAsync((Environment2D e) => e.EnvironmentId);
 
                 envRepo.Setup(r => r.SelectAsync()).ReturnsAsync(() => store.AsEnumerable());
 
