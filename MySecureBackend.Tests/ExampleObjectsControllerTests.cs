@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Identity.Client;
 using Moq;
 using MySecureBackend.WebApi.Controllers;
@@ -80,5 +81,67 @@ namespace MySecureBackend.Tests
                 // Verify InsertAsync was called only once
                 envRepo.Verify(r => r.InsertAsync(It.IsAny<Environment2D>()), Times.Once);
             }
+
+        [TestMethod]
+        public async Task Create_MaxEnvironmentsReached_ReturnsConflict()
+        {
+            // Arrange
+            var envRepo = new Mock<IEnvironment2DRepository>();
+            var authService = new Mock<IAuthenticationService>();
+            var controller = new Environment2DController(envRepo.Object, authService.Object);
+
+            var userId = Guid.NewGuid().ToString();
+            authService.Setup(a => a.GetCurrentAuthenticatedUserId()).Returns(userId);
+            envRepo.Setup(r => r.CountByOwnerAsync(userId)).ReturnsAsync(5);
+
+            // Act
+            var response = await controller.CreateAsync(new Environment2D { Name = "TestWorld" });
+
+            // Assert
+            Assert.IsInstanceOfType<ConflictObjectResult>(response.Result);
+        }
+
+        [TestMethod]
+        public async Task Delete_OwnEnvironment_ReturnsOk()
+        {
+            // Arrange
+            var envRepo = new Mock<IEnvironment2DRepository>();
+            var authService = new Mock<IAuthenticationService>();
+            var controller = new Environment2DController(envRepo.Object, authService.Object);
+
+            var userId = Guid.NewGuid().ToString();
+            var id = Guid.NewGuid();
+            authService.Setup(a => a.GetCurrentAuthenticatedUserId()).Returns(userId);
+            envRepo.Setup(r => r.SelectAsync(id)).ReturnsAsync(new Environment2D { Id = id, Name = "TestWorld", OwnerUserId = userId });
+            envRepo.Setup(r => r.DeleteAsync(id)).Returns(Task.CompletedTask);
+
+            // Act
+            var response = await controller.DeleteAsync(id);
+
+            // Assert
+            Assert.IsInstanceOfType<OkResult>(response);
+        }
+
+        [TestMethod]
+        public async Task Delete_OtherUsersEnvironment_ReturnsNotFound()
+        {
+            // Arrange
+            var envRepo = new Mock<IEnvironment2DRepository>();
+            var authService = new Mock<IAuthenticationService>();
+            var controller = new Environment2DController(envRepo.Object, authService.Object);
+
+            var userId = Guid.NewGuid().ToString();
+            var otherUserId = Guid.NewGuid().ToString();
+            var id = Guid.NewGuid();
+            authService.Setup(a => a.GetCurrentAuthenticatedUserId()).Returns(userId);
+            envRepo.Setup(r => r.SelectAsync(id)).ReturnsAsync(new Environment2D { Id = id, Name = "TestWorld", OwnerUserId = otherUserId });
+
+            // Act
+            var response = await controller.DeleteAsync(id);
+
+            // Assert
+            Assert.IsInstanceOfType<NotFoundObjectResult>(response);
+            envRepo.Verify(r => r.DeleteAsync(It.IsAny<Guid>()), Times.Never);
+        }
     }
 }
