@@ -10,7 +10,7 @@ using MySecureBackend.WebApi.Services;
 namespace MySecureBackend.Tests
 {
     [TestClass]
-    public sealed class ExampleObjectsControllerTests
+    public sealed class ControllerTests
     {
         private ExampleObjectsController controller;
         private Mock<IExampleObjectRepository> exampleObjectRepository;
